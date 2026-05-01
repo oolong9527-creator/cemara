@@ -21,9 +21,7 @@
         <video id="video" autoplay playsinline muted></video>
         <div id="flash"></div>
         <div id="hud">
-          <div id="hud-top">
-            <span id="app-title">PORTRAIT</span>
-          </div>
+          <div id="hud-top"><span id="app-title">PORTRAIT</span></div>
           <div id="guide-area">
             <div id="guide-oval"></div>
             <p id="guide-text">將臉部對準框內</p>
@@ -31,7 +29,6 @@
           <div id="hud-bottom"></div>
         </div>
       </div>
-
       <div id="camera-controls">
         <button id="btn-flip" title="切換鏡頭">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -39,24 +36,87 @@
             <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
           </svg>
         </button>
-        <button id="btn-capture">
-          <span id="shutter-inner"></span>
-        </button>
+        <button id="btn-capture"><span id="shutter-inner"></span></button>
         <div id="btn-placeholder"></div>
       </div>
     </div>
 
-    <!-- 預覽畫面 -->
+    <!-- 預覽 + 編輯畫面 -->
     <div id="preview-view" class="hidden">
       <div id="preview-header">
-        <span>預覽</span>
+        <button id="btn-retake" class="header-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          重拍
+        </button>
+        <span id="preview-title">編輯</span>
+        <button id="btn-download" class="header-btn accent">儲存</button>
       </div>
+
       <div id="preview-wrapper">
         <canvas id="canvas"></canvas>
       </div>
-      <div id="preview-controls">
-        <button id="btn-retake" class="secondary">重新拍攝</button>
-        <button id="btn-download" class="primary">儲存照片</button>
+
+      <div id="edit-panel">
+        <div id="edit-tabs">
+          <button class="tab-btn active" data-tab="bg">背景</button>
+          <button class="tab-btn" data-tab="retouch">修飾</button>
+          <button class="tab-btn" data-tab="light">光線</button>
+          <button class="tab-btn" data-tab="export">輸出</button>
+        </div>
+
+        <div id="tab-bg" class="tab-content">
+          <div class="pills-row">
+            <button class="pill active" data-bg="original">原色背景</button>
+            <button class="pill" data-bg="white">白色背景</button>
+          </div>
+          <div id="seg-loading" class="hidden">
+            <span class="spinner"></span>
+            <span>正在分析人像...</span>
+          </div>
+        </div>
+
+        <div id="tab-retouch" class="tab-content hidden">
+          <div class="slider-row">
+            <span class="slider-label">磨皮</span>
+            <input type="range" id="sl-smooth" min="0" max="100" value="0" />
+            <span class="slider-val" id="val-smooth">0</span>
+          </div>
+        </div>
+
+        <div id="tab-light" class="tab-content hidden">
+          <div class="slider-row">
+            <span class="slider-label">亮度</span>
+            <input type="range" id="sl-brightness" min="-50" max="50" value="0" />
+            <span class="slider-val" id="val-brightness">0</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-label">色溫</span>
+            <input type="range" id="sl-warmth" min="-50" max="50" value="0" />
+            <span class="slider-val" id="val-warmth">0</span>
+          </div>
+        </div>
+
+        <div id="tab-export" class="tab-content hidden">
+          <div class="option-group">
+            <p class="option-label">格式</p>
+            <div class="pills-row">
+              <button class="pill active" data-fmt="jpeg">JPG</button>
+              <button class="pill" data-fmt="png">PNG</button>
+              <button class="pill" data-fmt="webp">WebP</button>
+            </div>
+          </div>
+          <div class="option-group">
+            <p class="option-label">尺寸</p>
+            <div class="pills-row">
+              <button class="pill" data-size="600">S 600px</button>
+              <button class="pill active" data-size="1200">M 1200px</button>
+              <button class="pill" data-size="2000">L 2000px</button>
+              <button class="pill" data-size="0">原始</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -79,9 +139,7 @@
 
   <script src="app.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/cemara/sw.js');
-    }
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/cemara/sw.js');
   </script>
 </body>
 </html>

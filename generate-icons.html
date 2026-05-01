@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>產生 Icon</title></head>
+<body>
+<script>
+function drawIcon(size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const s = size / 512;
+
+  // 背景漸層
+  const grad = ctx.createLinearGradient(0, 0, size, size);
+  grad.addColorStop(0, '#4f8ef7');
+  grad.addColorStop(1, '#6c5ce7');
+  ctx.fillStyle = grad;
+  roundRect(ctx, 0, 0, size, size, 100 * s);
+  ctx.fill();
+
+  // 相機機身
+  ctx.fillStyle = 'rgba(255,255,255,0.95)';
+  roundRect(ctx, 96*s, 180*s, 320*s, 220*s, 30*s);
+  ctx.fill();
+
+  // 相機頂部凸起
+  roundRect(ctx, 190*s, 148*s, 132*s, 55*s, 20*s);
+  ctx.fill();
+
+  // 鏡頭外圈（深藍）
+  ctx.fillStyle = '#3a7bd5';
+  ctx.beginPath();
+  ctx.arc(256*s, 292*s, 82*s, 0, Math.PI*2);
+  ctx.fill();
+
+  // 鏡頭內圈（白色半透明）
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath();
+  ctx.arc(256*s, 292*s, 72*s, 0, Math.PI*2);
+  ctx.fill();
+
+  // 人物頭部
+  ctx.fillStyle = 'white';
+  ctx.beginPath();
+  ctx.arc(256*s, 265*s, 24*s, 0, Math.PI*2);
+  ctx.fill();
+
+  // 人物肩膀
+  ctx.beginPath();
+  ctx.ellipse(256*s, 318*s, 35*s, 22*s, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // 快門按鈕
+  ctx.fillStyle = '#4f8ef7';
+  ctx.beginPath();
+  ctx.arc(342*s, 210*s, 13*s, 0, Math.PI*2);
+  ctx.fill();
+
+  return canvas;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function download(canvas, name) {
+  const a = document.createElement('a');
+  a.download = name;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+// 產生並下載
+download(drawIcon(192), 'icon-192.png');
+setTimeout(() => download(drawIcon(512), 'icon-512.png'), 800);
+
+document.body.innerHTML = '<p style="font-family:sans-serif;padding:40px;font-size:1.2rem">✅ 正在下載 icon-192.png 和 icon-512.png，請將它們放入 headshot-app 資料夾。</p>';
+</script>
+</body>
+</html>

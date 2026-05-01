@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>大頭照拍攝</title>
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#4f8ef7" />
+  <meta name="theme-color" content="#000000" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="大頭照" />
@@ -14,54 +14,67 @@
 </head>
 <body>
   <div id="app">
-    <header>
-      <h1>大頭照拍攝</h1>
-    </header>
 
     <!-- 拍攝畫面 -->
     <div id="camera-view">
-      <div id="video-wrapper">
+      <div id="video-container">
         <video id="video" autoplay playsinline muted></video>
-        <div id="guide-overlay">
-          <div id="guide-oval"></div>
-          <p id="guide-text">將臉部對準橢圓框內</p>
+        <div id="flash"></div>
+        <div id="hud">
+          <div id="hud-top">
+            <span id="app-title">PORTRAIT</span>
+          </div>
+          <div id="guide-area">
+            <div id="guide-oval"></div>
+            <p id="guide-text">將臉部對準框內</p>
+          </div>
+          <div id="hud-bottom"></div>
         </div>
       </div>
 
       <div id="camera-controls">
         <button id="btn-flip" title="切換鏡頭">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M1 4v6h6M23 20v-6h-6"/>
             <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
           </svg>
         </button>
         <button id="btn-capture">
-          <span id="shutter-ring"></span>
-          <span id="shutter-dot"></span>
+          <span id="shutter-inner"></span>
         </button>
-        <button id="btn-placeholder" disabled></button>
+        <div id="btn-placeholder"></div>
       </div>
     </div>
 
     <!-- 預覽畫面 -->
     <div id="preview-view" class="hidden">
+      <div id="preview-header">
+        <span>預覽</span>
+      </div>
       <div id="preview-wrapper">
         <canvas id="canvas"></canvas>
       </div>
-
       <div id="preview-controls">
         <button id="btn-retake" class="secondary">重新拍攝</button>
         <button id="btn-download" class="primary">儲存照片</button>
       </div>
     </div>
 
-    <!-- 錯誤提示 -->
+    <!-- 錯誤畫面 -->
     <div id="error-view" class="hidden">
       <div id="error-box">
+        <div id="error-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
         <p id="error-msg"></p>
         <button id="btn-retry" class="primary">重試</button>
       </div>
     </div>
+
   </div>
 
   <script src="app.js"></script>

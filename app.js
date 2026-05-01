@@ -2,6 +2,7 @@
 
 const video       = document.getElementById('video');
 const canvas      = document.getElementById('canvas');
+const flash       = document.getElementById('flash');
 const cameraView  = document.getElementById('camera-view');
 const previewView = document.getElementById('preview-view');
 const errorView   = document.getElementById('error-view');
@@ -13,18 +14,14 @@ const btnDownload = document.getElementById('btn-download');
 const btnRetry    = document.getElementById('btn-retry');
 
 let stream = null;
-let facingMode = 'user'; // 預設前鏡頭
+let facingMode = 'user';
 
 async function startCamera() {
   stopStream();
   showView('camera');
 
   const constraints = {
-    video: {
-      facingMode,
-      width:  { ideal: 1920 },
-      height: { ideal: 1920 },
-    },
+    video: { facingMode, width: { ideal: 1920 }, height: { ideal: 1920 } },
     audio: false,
   };
 
@@ -43,12 +40,19 @@ function stopStream() {
   }
 }
 
+function triggerFlash() {
+  flash.classList.remove('pop');
+  void flash.offsetWidth;
+  flash.classList.add('pop');
+}
+
 function capturePhoto() {
   const vw = video.videoWidth;
   const vh = video.videoHeight;
   if (!vw || !vh) return;
 
-  // 裁切成正方形（置中）
+  triggerFlash();
+
   const size = Math.min(vw, vh);
   const sx   = (vw - size) / 2;
   const sy   = (vh - size) / 2;
@@ -58,7 +62,6 @@ function capturePhoto() {
 
   const ctx = canvas.getContext('2d');
 
-  // 前鏡頭水平翻轉讓預覽符合自然感
   if (facingMode === 'user') {
     ctx.save();
     ctx.scale(-1, 1);
@@ -68,15 +71,17 @@ function capturePhoto() {
     ctx.drawImage(video, sx, sy, size, size, 0, 0, size, size);
   }
 
-  stopStream();
-  showView('preview');
+  setTimeout(() => {
+    stopStream();
+    showView('preview');
+  }, 150);
 }
 
 function downloadPhoto() {
   const link  = document.createElement('a');
   const ts    = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-  link.download = `headshot-${ts}.jpg`;
-  link.href     = canvas.toDataURL('image/jpeg', 0.92);
+  link.download = `portrait-${ts}.jpg`;
+  link.href     = canvas.toDataURL('image/jpeg', 0.93);
   link.click();
 }
 
@@ -101,18 +106,12 @@ function buildErrorMessage(err) {
   if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
     return '相機正在被其他應用程式使用中，請關閉後重試。';
   }
-  if (err.name === 'OverconstrainedError') {
-    return '相機不支援所要求的解析度，請重試。';
-  }
   return `無法啟動相機：${err.message || err.name}`;
 }
 
-// 前鏡頭拍攝時 video 鏡像，讓使用者像照鏡子
-function applyMirror() {
+video.addEventListener('loadedmetadata', () => {
   video.style.transform = facingMode === 'user' ? 'scaleX(-1)' : 'scaleX(1)';
-}
-
-video.addEventListener('loadedmetadata', applyMirror);
+});
 
 btnCapture.addEventListener('click', capturePhoto);
 
@@ -122,10 +121,7 @@ btnFlip.addEventListener('click', () => {
 });
 
 btnRetake.addEventListener('click', startCamera);
-
 btnDownload.addEventListener('click', downloadPhoto);
-
 btnRetry.addEventListener('click', startCamera);
 
-// 啟動
 startCamera();

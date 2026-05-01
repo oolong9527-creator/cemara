@@ -9,51 +9,54 @@ function drawIcon(size) {
   const ctx = canvas.getContext('2d');
   const s = size / 512;
 
-  // 背景漸層
-  const grad = ctx.createLinearGradient(0, 0, size, size);
-  grad.addColorStop(0, '#4f8ef7');
-  grad.addColorStop(1, '#6c5ce7');
-  ctx.fillStyle = grad;
-  roundRect(ctx, 0, 0, size, size, 100 * s);
+  // 背景 — 深藍近黑
+  ctx.fillStyle = '#0d1117';
+  roundRect(ctx, 0, 0, size, size, 108 * s);
   ctx.fill();
 
-  // 相機機身
-  ctx.fillStyle = 'rgba(255,255,255,0.95)';
-  roundRect(ctx, 96*s, 180*s, 320*s, 220*s, 30*s);
-  ctx.fill();
+  // 細線筆觸
+  const lw = 18 * s;
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.90)';
+  ctx.lineWidth = lw;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
 
-  // 相機頂部凸起
-  roundRect(ctx, 190*s, 148*s, 132*s, 55*s, 20*s);
-  ctx.fill();
-
-  // 鏡頭外圈（深藍）
-  ctx.fillStyle = '#3a7bd5';
+  // 人像外框（圓角矩形）
+  const fx = 130 * s, fy = 90 * s, fw = 252 * s, fh = 320 * s, fr = 36 * s;
   ctx.beginPath();
-  ctx.arc(256*s, 292*s, 82*s, 0, Math.PI*2);
-  ctx.fill();
+  ctx.moveTo(fx + fr, fy);
+  ctx.lineTo(fx + fw - fr, fy);
+  ctx.quadraticCurveTo(fx + fw, fy, fx + fw, fy + fr);
+  ctx.lineTo(fx + fw, fy + fh - fr);
+  ctx.quadraticCurveTo(fx + fw, fy + fh, fx + fw - fr, fy + fh);
+  ctx.lineTo(fx + fr, fy + fh);
+  ctx.quadraticCurveTo(fx, fy + fh, fx, fy + fh - fr);
+  ctx.lineTo(fx, fy + fr);
+  ctx.quadraticCurveTo(fx, fy, fx + fr, fy);
+  ctx.closePath();
+  ctx.stroke();
 
-  // 鏡頭內圈（白色半透明）
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  // 頭部（圓形）
   ctx.beginPath();
-  ctx.arc(256*s, 292*s, 72*s, 0, Math.PI*2);
-  ctx.fill();
+  ctx.arc(256 * s, 228 * s, 60 * s, 0, Math.PI * 2);
+  ctx.stroke();
 
-  // 人物頭部
-  ctx.fillStyle = 'white';
+  // 肩膀弧線
+  const sy2 = 358 * s;
   ctx.beginPath();
-  ctx.arc(256*s, 265*s, 24*s, 0, Math.PI*2);
-  ctx.fill();
+  ctx.moveTo(148 * s, sy2);
+  ctx.quadraticCurveTo(256 * s, 300 * s, 364 * s, sy2);
+  ctx.stroke();
 
-  // 人物肩膀
+  // 底部小橫線 — 相片裁切提示
+  ctx.strokeStyle = 'rgba(79, 142, 247, 0.85)';
+  ctx.lineWidth = 14 * s;
+  ctx.lineCap = 'round';
+  const bly = 448 * s;
   ctx.beginPath();
-  ctx.ellipse(256*s, 318*s, 35*s, 22*s, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // 快門按鈕
-  ctx.fillStyle = '#4f8ef7';
-  ctx.beginPath();
-  ctx.arc(342*s, 210*s, 13*s, 0, Math.PI*2);
-  ctx.fill();
+  ctx.moveTo(196 * s, bly);
+  ctx.lineTo(316 * s, bly);
+  ctx.stroke();
 
   return canvas;
 }
@@ -79,11 +82,10 @@ function download(canvas, name) {
   a.click();
 }
 
-// 產生並下載
 download(drawIcon(192), 'icon-192.png');
 setTimeout(() => download(drawIcon(512), 'icon-512.png'), 800);
 
-document.body.innerHTML = '<p style="font-family:sans-serif;padding:40px;font-size:1.2rem">✅ 正在下載 icon-192.png 和 icon-512.png，請將它們放入 headshot-app 資料夾。</p>';
+document.body.innerHTML = '<p style="font-family:sans-serif;padding:40px;font-size:1.1rem">✅ 正在下載 icon-192.png 和 icon-512.png，請將它們放入 headshot-app 資料夾（覆蓋舊檔）。</p>';
 </script>
 </body>
 </html>

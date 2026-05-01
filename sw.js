@@ -1,4 +1,4 @@
-const CACHE = 'headshot-v2';
+const CACHE = 'headshot-v3';
 const ASSETS = [
   '/cemara/',
   '/cemara/index.html',

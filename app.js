@@ -217,6 +217,13 @@ const IMGLY_CDN = `https://cdn.jsdelivr.net/npm/@imgly/background-removal@${IMGL
 
 async function initBgRemoval() {
   if (removeBgFn) return;
+
+  // SharedArrayBuffer 需要 COOP/COEP 標頭（由 sw.js 注入）
+  // 首次開啟時 SW 尚未啟用，需重新整理一次
+  if (typeof SharedArrayBuffer === 'undefined') {
+    throw new Error('RELOAD_NEEDED');
+  }
+
   const mod = await import(`${IMGLY_CDN}background-removal.js`);
   removeBgFn = (blob) => mod.removeBackground(blob, {
     publicPath: IMGLY_CDN,
@@ -283,9 +290,13 @@ async function applyWhiteBackground() {
     applyPixelAdjustments(ctx, size, size, 12, 0);
   } catch (e) {
     console.error(e);
-    showToast('背景移除失敗，請確認網路連線後重試');
     cfg.whiteBg = false;
     bgPills.forEach(p => p.classList.toggle('active', p.dataset.bg === 'original'));
+    if (e?.message === 'RELOAD_NEEDED') {
+      showToast('請重新整理頁面一次，即可啟用白底功能');
+    } else {
+      showToast('背景移除失敗，請確認網路連線後重試');
+    }
   } finally {
     segLoading.classList.add('hidden');
     segStatus.textContent = '';

@@ -417,6 +417,13 @@ input[type="range"]::-moz-range-thumb {
   margin-bottom: 10px;
 }
 
+.option-hint {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
 /* ══════════════════════════
    ERROR VIEW
 ══════════════════════════ */

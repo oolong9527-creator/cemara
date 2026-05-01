@@ -34,13 +34,21 @@ let whiteCanvas = null;   // person composited over white bg
 let segmenter   = null;
 let segReady    = false;
 
+// 35×45mm @ 600 DPI → 827×1063 px
+const SIZE_PRESETS = {
+  '2inch': { w: 827,  h: 1063 },
+  '1200':  { w: 1200, h: 1200 },
+  '2000':  { w: 2000, h: 2000 },
+  '0':     null,                  // original square
+};
+
 const cfg = {
   whiteBg:    false,
-  smooth:     0,      // 0–100
-  brightness: 0,      // -50 to 50
-  warmth:     0,      // -50 to 50
+  smooth:     0,
+  brightness: 0,
+  warmth:     0,
   format:     'jpeg',
-  size:       1200,   // px, 0 = original
+  sizeKey:    '2inch',
 };
 
 // ── Camera ──────────────────────────────────────────────────────────────────
@@ -130,43 +138,79 @@ function applyPixelAdjustments(ctx, w, h, brightness, warmth) {
   ctx.putImageData(id, 0, 0);
 }
 
-async function buildEditedCanvas(targetSize) {
-  const src  = (cfg.whiteBg && whiteCanvas) ? whiteCanvas : rawCanvas;
-  const size = targetSize || rawCanvas.width;
+// Crop the square source to match outW:outH aspect ratio
+function cropSource(src, outW, outH) {
+  const s = src.width;
+  const aspect = outW / outH;
+  let sx, sy, sw, sh;
+  if (aspect <= 1) {
+    sw = Math.round(s * aspect);
+    sh = s;
+    sx = Math.round((s - sw) / 2);
+    sy = 0;
+  } else {
+    sw = s;
+    sh = Math.round(s / aspect);
+    sx = 0;
+    sy = Math.round((s - sh) / 2);
+  }
+  return { sx, sy, sw, sh };
+}
+
+async function buildEditedCanvas(outW, outH) {
+  const src = (cfg.whiteBg && whiteCanvas) ? whiteCanvas : rawCanvas;
+  const { sx, sy, sw, sh } = cropSource(rawCanvas, outW, outH);
 
   const out = document.createElement('canvas');
-  out.width = out.height = size;
+  out.width = outW; out.height = outH;
   const ctx = out.getContext('2d');
 
   if (cfg.whiteBg && whiteCanvas) {
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
+    ctx.fillRect(0, 0, outW, outH);
+    // Crop whiteCanvas the same way
+    const wc = whiteCanvas;
+    const tmp2 = document.createElement('canvas');
+    tmp2.width = outW; tmp2.height = outH;
+    const tc2 = tmp2.getContext('2d');
+    tc2.fillStyle = '#ffffff';
+    tc2.fillRect(0, 0, outW, outH);
+    tc2.drawImage(wc, sx, sy, sw, sh, 0, 0, outW, outH);
+    ctx.drawImage(tmp2, 0, 0);
+  } else {
+    ctx.drawImage(src, sx, sy, sw, sh, 0, 0, outW, outH);
   }
-  ctx.drawImage(src, 0, 0, size, size);
 
   // Smoothing blur
-  const blurPx = (cfg.smooth / 100) * 3.5 * (size / 1000);
+  const blurPx = (cfg.smooth / 100) * 3.5 * (Math.min(outW, outH) / 1000);
   if (blurPx > 0.25 && 'filter' in ctx) {
     const tmp = document.createElement('canvas');
-    tmp.width = tmp.height = size;
+    tmp.width = outW; tmp.height = outH;
     const tc  = tmp.getContext('2d');
     tc.filter = `blur(${blurPx.toFixed(2)}px)`;
     tc.drawImage(out, 0, 0);
-    ctx.clearRect(0, 0, size, size);
-    if (cfg.whiteBg) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size, size); }
+    ctx.clearRect(0, 0, outW, outH);
+    if (cfg.whiteBg) { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, outW, outH); }
     ctx.drawImage(tmp, 0, 0);
   }
 
-  // Brightness + warmth (pixel manipulation — works on all browsers)
-  applyPixelAdjustments(ctx, size, size, cfg.brightness, cfg.warmth);
-
+  applyPixelAdjustments(ctx, outW, outH, cfg.brightness, cfg.warmth);
   return out;
 }
 
+function getOutputDims(forDisplay = false) {
+  const preset = SIZE_PRESETS[cfg.sizeKey];
+  if (!preset) return { w: rawCanvas.width, h: rawCanvas.width };
+  if (!forDisplay) return { w: preset.w, h: preset.h };
+  const maxPx = 900;
+  const scale = Math.min(maxPx / preset.w, maxPx / preset.h, 1);
+  return { w: Math.round(preset.w * scale), h: Math.round(preset.h * scale) };
+}
+
 async function renderPreview() {
-  const displaySize = Math.min(rawCanvas.width, 900);
-  const out = await buildEditedCanvas(displaySize);
-  canvas.width = canvas.height = displaySize;
+  const { w, h } = getOutputDims(true);
+  const out = await buildEditedCanvas(w, h);
+  canvas.width = w; canvas.height = h;
   canvas.getContext('2d').drawImage(out, 0, 0);
 }
 
@@ -259,8 +303,8 @@ async function downloadPhoto() {
   btnDownload.textContent = '處理中...';
   btnDownload.disabled = true;
   try {
-    const targetSize = cfg.size === 0 ? rawCanvas.width : cfg.size;
-    const out = await buildEditedCanvas(targetSize);
+    const { w, h } = getOutputDims(false);
+    const out = await buildEditedCanvas(w, h);
     const mimeMap = { jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
     const extMap  = { jpeg: 'jpg', png: 'png', webp: 'webp' };
     const quality = cfg.format === 'jpeg' ? 0.93 : cfg.format === 'webp' ? 0.9 : undefined;
@@ -357,8 +401,9 @@ fmtPills.forEach(btn => {
 // Size pills
 sizePills.forEach(btn => {
   btn.addEventListener('click', () => {
-    cfg.size = +btn.dataset.size;
+    cfg.sizeKey = btn.dataset.size;
     sizePills.forEach(p => p.classList.toggle('active', p === btn));
+    renderPreview();
   });
 });
 

@@ -262,43 +262,37 @@ html, body {
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   border-top: 1px solid var(--glass-border);
+  overflow-y: auto;
+  max-height: 46vh;
 }
 
-#edit-tabs {
+.edit-row {
   display: flex;
-  border-bottom: 1px solid var(--glass-border);
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-.tab-btn {
-  flex: 1;
-  padding: 12px 4px;
-  background: transparent;
-  border: none;
+.edit-row-last {
+  padding-bottom: calc(13px + env(safe-area-inset-bottom, 0px));
+  border-bottom: none;
+  align-items: flex-start;
+}
+
+.edit-row-label {
+  font-size: 0.8rem;
   color: var(--text-dim);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
+  width: 36px;
+  flex-shrink: 0;
   letter-spacing: 0.02em;
-  transition: color 0.18s;
-  position: relative;
-}
-.tab-btn.active {
-  color: var(--text);
-}
-.tab-btn.active::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 20%;
-  right: 20%;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 2px;
 }
 
-.tab-content {
-  padding: 18px 20px calc(18px + env(safe-area-inset-bottom, 0px));
-  min-height: 100px;
+.pills-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
 }
 
 /* Pills */

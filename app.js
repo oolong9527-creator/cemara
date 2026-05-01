@@ -13,8 +13,6 @@ const btnFlip       = document.getElementById('btn-flip');
 const btnRetake     = document.getElementById('btn-retake');
 const btnDownload   = document.getElementById('btn-download');
 const btnRetry      = document.getElementById('btn-retry');
-const tabBtns       = document.querySelectorAll('.tab-btn');
-const tabContents   = document.querySelectorAll('.tab-content');
 const bgPills       = document.querySelectorAll('[data-bg]');
 const fmtPills      = document.querySelectorAll('[data-fmt]');
 const sizePills     = document.querySelectorAll('[data-size]');
@@ -110,8 +108,6 @@ function resetEdits() {
   slSmooth.value = slBrightness.value = slWarmth.value = '0';
   valSmooth.textContent = valBrightness.textContent = valWarmth.textContent = '0';
   bgPills.forEach(p => p.classList.toggle('active', p.dataset.bg === 'original'));
-  // Reset to first tab
-  switchTab('bg');
 }
 
 function triggerFlash() {
@@ -336,16 +332,6 @@ function buildErrorMessage(err) {
   return `無法啟動相機：${err.message || err.name}`;
 }
 
-function switchTab(name) {
-  tabBtns.forEach(b => {
-    const active = b.dataset.tab === name;
-    b.classList.toggle('active', active);
-  });
-  tabContents.forEach(c => {
-    c.classList.toggle('hidden', c.id !== `tab-${name}`);
-  });
-}
-
 // ── Event listeners ──────────────────────────────────────────────────────────
 
 video.addEventListener('loadedmetadata', () => {
@@ -360,11 +346,6 @@ btnFlip.addEventListener('click', () => {
 btnRetake.addEventListener('click', startCamera);
 btnDownload.addEventListener('click', downloadPhoto);
 btnRetry.addEventListener('click', startCamera);
-
-// Tabs
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-});
 
 // Background
 bgPills.forEach(btn => {

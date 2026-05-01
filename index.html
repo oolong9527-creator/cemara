@@ -59,65 +59,60 @@
       </div>
 
       <div id="edit-panel">
-        <div id="edit-tabs">
-          <button class="tab-btn active" data-tab="bg">背景</button>
-          <button class="tab-btn" data-tab="retouch">修飾</button>
-          <button class="tab-btn" data-tab="light">光線</button>
-          <button class="tab-btn" data-tab="export">輸出</button>
-        </div>
 
-        <div id="tab-bg" class="tab-content">
+        <div class="edit-row">
+          <span class="edit-row-label">背景</span>
           <div class="pills-row">
-            <button class="pill active" data-bg="original">原色背景</button>
-            <button class="pill" data-bg="white">白色背景</button>
+            <button class="pill active" data-bg="original">原色</button>
+            <button class="pill" data-bg="white">白底</button>
           </div>
           <div id="seg-loading" class="hidden">
             <span class="spinner"></span>
-            <span>正在分析人像...</span>
           </div>
         </div>
 
-        <div id="tab-retouch" class="tab-content hidden">
-          <div class="slider-row">
-            <span class="slider-label">磨皮</span>
-            <input type="range" id="sl-smooth" min="0" max="100" value="0" />
-            <span class="slider-val" id="val-smooth">0</span>
+        <div class="edit-row">
+          <span class="edit-row-label">磨皮</span>
+          <input type="range" id="sl-smooth" min="0" max="100" value="0" />
+          <span class="slider-val" id="val-smooth">0</span>
+        </div>
+
+        <div class="edit-row">
+          <span class="edit-row-label">亮度</span>
+          <input type="range" id="sl-brightness" min="-50" max="50" value="0" />
+          <span class="slider-val" id="val-brightness">0</span>
+        </div>
+
+        <div class="edit-row">
+          <span class="edit-row-label">色溫</span>
+          <input type="range" id="sl-warmth" min="-50" max="50" value="0" />
+          <span class="slider-val" id="val-warmth">0</span>
+        </div>
+
+        <div class="edit-row">
+          <span class="edit-row-label">格式</span>
+          <div class="pills-row">
+            <button class="pill active" data-fmt="jpeg">JPG</button>
+            <button class="pill" data-fmt="png">PNG</button>
+            <button class="pill" data-fmt="webp">WebP</button>
           </div>
         </div>
 
-        <div id="tab-light" class="tab-content hidden">
-          <div class="slider-row">
-            <span class="slider-label">亮度</span>
-            <input type="range" id="sl-brightness" min="-50" max="50" value="0" />
-            <span class="slider-val" id="val-brightness">0</span>
-          </div>
-          <div class="slider-row">
-            <span class="slider-label">色溫</span>
-            <input type="range" id="sl-warmth" min="-50" max="50" value="0" />
-            <span class="slider-val" id="val-warmth">0</span>
-          </div>
-        </div>
-
-        <div id="tab-export" class="tab-content hidden">
-          <div class="option-group">
-            <p class="option-label">格式</p>
+        <div class="edit-row edit-row-last">
+          <span class="edit-row-label">尺寸</span>
+          <div class="pills-col">
             <div class="pills-row">
-              <button class="pill active" data-fmt="jpeg">JPG</button>
-              <button class="pill" data-fmt="png">PNG</button>
-              <button class="pill" data-fmt="webp">WebP</button>
-            </div>
-          </div>
-          <div class="option-group">
-            <p class="option-label">尺寸</p>
-            <div class="pills-row">
-              <button class="pill active" data-size="2inch">2吋 證件</button>
+              <button class="pill active" data-size="2inch">2吋 35×45mm</button>
               <button class="pill" data-size="1200">M 1200px</button>
+            </div>
+            <div class="pills-row">
               <button class="pill" data-size="2000">L 2000px</button>
               <button class="pill" data-size="0">原始</button>
             </div>
-            <p class="option-hint">2吋 = 35×45mm・600 DPI・適用護照／身分證</p>
+            <p class="option-hint">2吋 = 護照・身分證・駕照用規格</p>
           </div>
         </div>
+
       </div>
     </div>
 

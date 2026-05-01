@@ -230,6 +230,23 @@ async function initBgRemoval() {
   });
 }
 
+// 去除合成到白底時半透明邊緣產生的灰色暈邊
+function cleanHaloEdges(ctx, w, h) {
+  const id = ctx.getImageData(0, 0, w, h);
+  const d  = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const minCh = Math.min(d[i], d[i + 1], d[i + 2]);
+    if (minCh > 210) {
+      // 越接近白色越強力推向純白，平滑消除暈邊
+      const t = (minCh - 210) / 45;
+      d[i]     = Math.round(d[i]     + (255 - d[i])     * t);
+      d[i + 1] = Math.round(d[i + 1] + (255 - d[i + 1]) * t);
+      d[i + 2] = Math.round(d[i + 2] + (255 - d[i + 2]) * t);
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
 async function applyWhiteBackground() {
   segLoading.classList.remove('hidden');
   segStatus.textContent = '初始化...';
@@ -249,10 +266,21 @@ async function applyWhiteBackground() {
     whiteCanvas = document.createElement('canvas');
     whiteCanvas.width = whiteCanvas.height = size;
     const ctx = whiteCanvas.getContext('2d');
+
+    // 1. 白底
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, size, size);
+
+    // 2. 合成人像（含透明度）
     ctx.drawImage(img, 0, 0, size, size);
     URL.revokeObjectURL(url);
+
+    // 3. 去除暈邊（灰色 halo）
+    segStatus.textContent = '優化邊緣...';
+    cleanHaloEdges(ctx, size, size);
+
+    // 4. 補光：模擬白底環境的反射補光（+12 亮度）
+    applyPixelAdjustments(ctx, size, size, 12, 0);
   } catch (e) {
     console.error(e);
     showToast('背景移除失敗，請確認網路連線後重試');

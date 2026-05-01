@@ -23,14 +23,14 @@ const valSmooth     = document.getElementById('val-smooth');
 const valBrightness = document.getElementById('val-brightness');
 const valWarmth     = document.getElementById('val-warmth');
 const segLoading    = document.getElementById('seg-loading');
+const segStatus     = document.getElementById('seg-status');
 
 // ── State ──
 let stream      = null;
 let facingMode  = 'user';
 let rawCanvas   = null;   // original captured square image
 let whiteCanvas = null;   // person composited over white bg
-let segmenter   = null;
-let segReady    = false;
+let removeBgFn  = null;   // @imgly/background-removal function
 
 // 35×45mm @ 600 DPI → 827×1063 px
 const SIZE_PRESETS = {
@@ -210,67 +210,57 @@ async function renderPreview() {
   canvas.getContext('2d').drawImage(out, 0, 0);
 }
 
-// ── Segmentation (MediaPipe) ─────────────────────────────────────────────────
+// ── Background Removal (@imgly/background-removal) ───────────────────────────
 
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = src; s.onload = resolve; s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
+const IMGLY_VER = '1.4.5';
+const IMGLY_CDN = `https://cdn.jsdelivr.net/npm/@imgly/background-removal@${IMGLY_VER}/dist/`;
 
-async function initSegmenter() {
-  if (segReady) return;
-  if (typeof SelfieSegmentation === 'undefined') {
-    await loadScript(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js'
-    );
-  }
-  segmenter = new SelfieSegmentation({
-    locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/${f}`,
-  });
-  segmenter.setOptions({ modelSelection: 1 });
-  segmenter.onResults(() => {});
-  await segmenter.initialize();
-  segReady = true;
-}
-
-async function segmentOnce(imageSource) {
-  return new Promise(resolve => {
-    segmenter.onResults(r => resolve(r.segmentationMask));
-    segmenter.send({ image: imageSource });
+async function initBgRemoval() {
+  if (removeBgFn) return;
+  const mod = await import(`${IMGLY_CDN}background-removal.js`);
+  removeBgFn = (blob) => mod.removeBackground(blob, {
+    publicPath: IMGLY_CDN,
+    model: 'medium',
+    output: { format: 'image/png', quality: 1 },
+    progress: (key, cur, total) => {
+      if (segStatus && total > 0) {
+        segStatus.textContent = `載入模型 ${Math.round(cur / total * 100)}%`;
+      }
+    },
   });
 }
 
 async function applyWhiteBackground() {
   segLoading.classList.remove('hidden');
+  segStatus.textContent = '初始化...';
   try {
-    await initSegmenter();
-    const mask = await segmentOnce(rawCanvas);
+    await initBgRemoval();
+    segStatus.textContent = '分析中...';
+
+    const blob = await new Promise(r => rawCanvas.toBlob(r, 'image/png'));
+    const resultBlob = await removeBgFn(blob);
+
+    const img = new Image();
+    const url = URL.createObjectURL(resultBlob);
+    img.src = url;
+    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+
     const size = rawCanvas.width;
     whiteCanvas = document.createElement('canvas');
     whiteCanvas.width = whiteCanvas.height = size;
     const ctx = whiteCanvas.getContext('2d');
-
-    // Person layer (mask cuts out background)
-    const person = document.createElement('canvas');
-    person.width = person.height = size;
-    const pc = person.getContext('2d');
-    pc.drawImage(rawCanvas, 0, 0);
-    pc.globalCompositeOperation = 'destination-in';
-    pc.drawImage(mask, 0, 0, size, size);
-
-    // White bg + person on top
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, size, size);
-    ctx.drawImage(person, 0, 0);
-  } catch {
-    showToast('背景移除需要網路，請確認連線後重試');
+    ctx.drawImage(img, 0, 0, size, size);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error(e);
+    showToast('背景移除失敗，請確認網路連線後重試');
     cfg.whiteBg = false;
     bgPills.forEach(p => p.classList.toggle('active', p.dataset.bg === 'original'));
   } finally {
     segLoading.classList.add('hidden');
+    segStatus.textContent = '';
   }
 }
 

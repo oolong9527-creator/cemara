@@ -325,10 +325,14 @@ html, body {
 #seg-loading {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-left: 8px;
   color: var(--text-dim);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
+}
+
+#seg-status {
+  font-variant-numeric: tabular-nums;
 }
 
 .spinner {

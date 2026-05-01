@@ -212,26 +212,18 @@ async function renderPreview() {
 
 // ── Background Removal (@imgly/background-removal) ───────────────────────────
 
-const IMGLY_VER = '1.4.5';
-const IMGLY_CDN = `https://cdn.jsdelivr.net/npm/@imgly/background-removal@${IMGLY_VER}/dist/`;
+// 使用 esm.sh CDN 自動解析 ESM 依賴，不需手動指定 publicPath
+const IMGLY_URL = 'https://esm.sh/@imgly/background-removal@1.4.5';
 
 async function initBgRemoval() {
   if (removeBgFn) return;
-
-  // SharedArrayBuffer 需要 COOP/COEP 標頭（由 sw.js 注入）
-  // 首次開啟時 SW 尚未啟用，需重新整理一次
-  if (typeof SharedArrayBuffer === 'undefined') {
-    throw new Error('RELOAD_NEEDED');
-  }
-
-  const mod = await import(`${IMGLY_CDN}background-removal.js`);
+  const mod = await import(IMGLY_URL);
   removeBgFn = (blob) => mod.removeBackground(blob, {
-    publicPath: IMGLY_CDN,
-    model: 'medium',
+    model: 'small',   // ~5MB，下載更快更穩定
     output: { format: 'image/png', quality: 1 },
     progress: (key, cur, total) => {
       if (segStatus && total > 0) {
-        segStatus.textContent = `載入模型 ${Math.round(cur / total * 100)}%`;
+        segStatus.textContent = `載入 ${Math.round(cur / total * 100)}%`;
       }
     },
   });
@@ -292,11 +284,8 @@ async function applyWhiteBackground() {
     console.error(e);
     cfg.whiteBg = false;
     bgPills.forEach(p => p.classList.toggle('active', p.dataset.bg === 'original'));
-    if (e?.message === 'RELOAD_NEEDED') {
-      showToast('請重新整理頁面一次，即可啟用白底功能');
-    } else {
-      showToast('背景移除失敗，請確認網路連線後重試');
-    }
+    const detail = e?.message || e?.name || String(e);
+    showToast(`去背失敗：${detail.slice(0, 60)}`);
   } finally {
     segLoading.classList.add('hidden');
     segStatus.textContent = '';
